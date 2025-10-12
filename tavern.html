@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猎人酒馆 - 寻宝大冒险</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="scene-page tavern">
+    <div class="container">
+        <div class="scene-header">
+            <h1>🍺 猎人酒馆</h1>
+            <button class="back-btn" onclick="window.location.href='index.html'">返回地图</button>
+        </div>
+        
+        <div class="status-panel">
+            <p>金币: <span id="gold">50</span> | 打手: <span id="helpers">0</span>人 | 线索: <span id="clue">未找到</span></p>
+        </div>
+        
+        <div class="scene-content">
+            <p class="description">酒馆里人声鼎沸，冒险者们正在喝酒聊天，你可以雇佣他们帮你探索神庙...</p>
+            
+            <div class="actions">
+                <button onclick="hireHelper()">雇佣打手（10金币/人）</button>
+                <button onclick="buyInfo()">购买情报（5金币）</button>
+            </div>
+            
+            <div class="log-container">
+                <h3>酒馆日志</h3>
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 酒馆背景音乐 -->
+    <audio id="bg-music" loop>
+        <source src="audio/tavern.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="js/game.js"></script>
+    <script>
+        const gameState = loadGameState();
+        updateUI();
+        
+        // 检查是否解锁（必须完成图书馆）
+        if (!gameState.sceneCompleted.library) {
+            addLog('老板："没线索？先去图书馆找藏宝图再来！"', 'error');
+            document.querySelector('button[onclick="hireHelper()"]').disabled = true;
+            document.querySelector('button[onclick="buyInfo()"]').disabled = true;
+        } else {
+            addLog('你走进酒馆，冒险者们投来好奇的目光...', 'info');
+        }
+        
+        // 雇佣打手（核心：解锁神庙）
+        async function hireHelper() {
+            if (gameState.gold < 10) {
+                addLog('金币不足！雇佣1人需要10金币', 'error');
+                return;
+            }
+            if (gameState.sceneCompleted.tavern) {
+                addLog('已雇佣足够打手，去神庙吧！', 'info');
+                return;
+            }
+            
+            addLog('与强壮的冒险者交谈，试图雇佣他...', 'info');
+            await delay(1500);
+            
+            // 80%雇佣成功
+            if (Math.random() < 0.8) {
+                gameState.gold -= 10;
+                gameState.helpers += 1;
+                addLog(`成功雇佣1名打手！剩余金币：${gameState.gold}，当前共${gameState.helpers}人`, 'success');
+                
+                // 雇佣3人以上解锁神庙
+                if (gameState.helpers >= 3) {
+                    gameState.sceneCompleted.tavern = true;
+                    gameState.scenes.temple = true;
+                    addLog('🔓 神秘神庙已解锁！', 'success');
+                }
+            } else {
+                addLog('对方拒绝了你的雇佣...', 'warning');
+            }
+            saveGameState();
+            updateUI();
+        }
+        
+        // 购买情报
+        async function buyInfo() {
+            if (gameState.gold < 5) {
+                addLog('金币不足！情报需要5金币', 'error');
+                return;
+            }
+            
+            gameState.gold -= 5;
+            addLog('花费5金币向老板购买情报...', 'info');
+            await delay(1000);
+            
+            const tips = [
+                '老板："神庙守卫很凶，至少3人才能对付"',
+                '老板："宝藏很重，需要打手帮忙搬运"',
+                '老板："出口结算时，每个打手要8金币尾款"',
+                '老板："神庙里有陷阱，小心！"'
+            ];
+            addLog(tips[Math.floor(Math.random() * tips.length)], 'info');
+            
+            saveGameState();
+            updateUI();
+        }
+        
+        // 播放音乐
+        const music = document.getElementById('bg-music');
+        if (gameState.musicEnabled) {
+            music.volume = 0.3;
+            document.body.addEventListener('click', () => {
+                music.play().catch(e => console.log('需点击页面后播放音乐'));
+            }, { once: true });
+        }
+    </script>
+</body>
+</html>

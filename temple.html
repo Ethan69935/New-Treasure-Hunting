@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>神秘神庙 - 寻宝大冒险</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="scene-page temple">
+    <div class="container">
+        <div class="scene-header">
+            <h1>🏛️ 神秘神庙</h1>
+            <button class="back-btn" onclick="window.location.href='index.html'">返回地图</button>
+        </div>
+        
+        <div class="status-panel">
+            <p>金币: <span id="gold">50</span> | 打手: <span id="helpers">0</span>人 | 宝藏: <span id="treasure">未找到</span></p>
+        </div>
+        
+        <div class="scene-content">
+            <p class="description">神庙入口阴森幽暗，门口有守卫把守，深处似乎藏着传说中的宝藏...</p>
+            
+            <div class="actions">
+                <button onclick="fightGuard()">对抗守卫（需3+打手）</button>
+                <button onclick="searchTreasure()" disabled>搜索宝藏</button>
+            </div>
+            
+            <div class="log-container">
+                <h3>神庙日志</h3>
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 神庙背景音乐 -->
+    <audio id="bg-music" loop>
+        <source src="audio/temple.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="js/game.js"></script>
+    <script>
+        const gameState = loadGameState();
+        updateUI();
+        
+        // 检查前置条件（至少3名打手）
+        if (gameState.helpers < 3) {
+            addLog('提示：至少需要3名打手才能对抗守卫！', 'error');
+            document.querySelector('button[onclick="fightGuard()"]').disabled = true;
+        } else {
+            addLog('你带着打手来到神庙门口，守卫拦住了去路...', 'info');
+        }
+        
+        // 更新宝藏显示
+        document.querySelectorAll('#treasure').forEach(el => {
+            el.textContent = gameState.hasTreasure ? '已找到' : '未找到';
+        });
+        
+        // 对抗守卫
+        async function fightGuard() {
+            addLog('指挥打手对抗守卫！', 'info');
+            await delay(2000);
+            
+            // 成功率 = 打手数 × 20%（3人60%，4人80%，5人以上100%）
+            const successRate = Math.min(gameState.helpers * 0.2, 1);
+            if (Math.random() < successRate) {
+                addLog('成功击退守卫！可以进入神庙内部了', 'success');
+                document.querySelector('button[onclick="searchTreasure()"]').disabled = false;
+            } else {
+                addLog('守卫太强，被迫撤退，损失1名打手', 'error');
+                gameState.helpers = Math.max(0, gameState.helpers - 1);
+                saveGameState();
+                updateUI();
+            }
+        }
+        
+        // 搜索宝藏（解锁出口）
+        async function searchTreasure() {
+            if (gameState.hasTreasure) {
+                addLog('已经找到宝藏，去出口结算吧！', 'info');
+                return;
+            }
+            
+            addLog('在神庙深处搜索宝藏...', 'info');
+            await delay(2500);
+            
+            // 找到宝藏概率 = 打手数 × 15%（3人45%，4人60%...）
+            const findRate = Math.min(gameState.helpers * 0.15, 0.8);
+            if (Math.random() < findRate) {
+                gameState.hasTreasure = true;
+                gameState.sceneCompleted.temple = true;
+                gameState.scenes.exit = true; // 解锁出口
+                addLog('🎉 找到黄金宝藏！神庙出口已解锁', 'success');
+                document.querySelectorAll('#treasure').forEach(el => {
+                    el.textContent = '已找到';
+                });
+            } else {
+                addLog('没找到宝藏，再试一次...', 'warning');
+            }
+            saveGameState();
+            updateUI();
+        }
+        
+        // 播放音乐
+        const music = document.getElementById('bg-music');
+        if (gameState.musicEnabled) {
+            music.volume = 0.3;
+            document.body.addEventListener('click', () => {
+                music.play().catch(e => console.log('需点击页面后播放音乐'));
+            }, { once: true });
+        }
+    </script>
+</body>
+</html>

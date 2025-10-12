@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寻宝大冒险 - 全景地图</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🏴‍☠️ 寻宝大冒险</h1>
+        
+        <!-- 状态面板 -->
+        <div class="status-panel">
+            <p>金币: <span id="gold">50</span> | 打手: <span id="helpers">0</span>人 | 线索: <span id="clue">未找到</span></p>
+        </div>
+        
+        <!-- 全景地图区域 -->
+        <div class="panorama">
+            <!-- 图书馆（初始解锁） -->
+            <div class="location" id="library" data-page="library.html">
+                <div class="icon">📚</div>
+                <h3>古老图书馆</h3>
+                <p>寻找宝藏线索</p>
+                <div class="location-status">状态: <span id="library-status">可探索</span></div>
+            </div>
+            
+            <!-- 酒馆（图书馆完成后解锁） -->
+            <div class="location locked" id="tavern" data-page="tavern.html">
+                <div class="icon">🍺</div>
+                <h3>猎人酒馆</h3>
+                <p>雇佣打手</p>
+                <div class="location-status">状态: <span id="tavern-status">未解锁</span></div>
+            </div>
+            
+            <!-- 神庙（酒馆完成后解锁） -->
+            <div class="location locked" id="temple" data-page="temple.html">
+                <div class="icon">🏛️</div>
+                <h3>神秘神庙</h3>
+                <p>探索宝藏</p>
+                <div class="location-status">状态: <span id="temple-status">未解锁</span></div>
+            </div>
+            
+            <!-- 出口（神庙完成后解锁） -->
+            <div class="location locked" id="exit" data-page="exit.html">
+                <div class="icon">🚪</div>
+                <h3>神庙出口</h3>
+                <p>结算冒险</p>
+                <div class="location-status">状态: <span id="exit-status">未解锁</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全景页背景音乐 -->
+    <audio id="bg-music" loop>
+        <!-- 替换为你的音乐文件或在线链接 -->
+        <source src="audio/panorama.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="js/game.js"></script>
+    <script>
+        // 加载游戏状态
+        const gameState = loadGameState();
+        // 初始化UI
+        updateUI();
+
+        // 绑定地点点击事件（跳转场景）
+        document.querySelectorAll('.location').forEach(location => {
+            location.addEventListener('click', () => {
+                const targetPage = location.dataset.page;
+                enterScene(targetPage);
+            });
+        });
+
+        // 尝试播放音乐（需用户交互）
+        const music = document.getElementById('bg-music');
+        if (gameState.musicEnabled) {
+            music.volume = 0.3;
+            document.body.addEventListener('click', () => {
+                music.play().catch(e => console.log('需点击页面后播放音乐'));
+            }, { once: true });
+        }
+    </script>
+</body>
+</html>

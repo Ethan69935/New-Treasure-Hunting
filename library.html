@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古老图书馆 - 寻宝大冒险</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="scene-page library">
+    <div class="container">
+        <div class="scene-header">
+            <h1>📚 古老图书馆</h1>
+            <button class="back-btn" onclick="window.location.href='index.html'">返回地图</button>
+        </div>
+        
+        <div class="status-panel">
+            <p>金币: <span id="gold">50</span> | 打手: <span id="helpers">0</span>人 | 线索: <span id="clue">未找到</span></p>
+        </div>
+        
+        <div class="scene-content">
+            <p class="description">这里堆满了尘封的古籍，空气中弥漫着纸张和墨水的味道，也许藏着宝藏的线索...</p>
+            
+            <div class="actions">
+                <button onclick="searchBooks()">搜索古籍（找线索）</button>
+                <button onclick="checkDesk()">检查书桌（找金币）</button>
+            </div>
+            
+            <div class="log-container">
+                <h3>冒险日志</h3>
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图书馆背景音乐 -->
+    <audio id="bg-music" loop>
+        <source src="audio/library.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="js/game.js"></script>
+    <script>
+        const gameState = loadGameState();
+        updateUI();
+        
+        // 初始化日志
+        addLog('你走进了古老图书馆，书架上摆满了千年古籍...');
+
+        // 搜索古籍（核心：找线索，解锁酒馆）
+        async function searchBooks() {
+            if (gameState.sceneCompleted.library) {
+                addLog('你已经找到线索了，去酒馆吧！', 'info');
+                return;
+            }
+            
+            addLog('开始翻阅古籍，寻找藏宝图...', 'info');
+            await delay(2000);
+            
+            // 70%概率找到线索
+            if (Math.random() < 0.7) {
+                gameState.hasClue = true;
+                gameState.sceneCompleted.library = true;
+                gameState.scenes.tavern = true; // 解锁酒馆
+                addLog('🎉 找到藏宝图！上面标记着神庙的位置', 'success');
+                addLog('🔓 猎人酒馆已解锁', 'success');
+            } else {
+                addLog('这本古籍里只有一些神话故事...', 'warning');
+            }
+            saveGameState();
+            updateUI();
+        }
+        
+        // 检查书桌（次要：找金币）
+        async function checkDesk() {
+            addLog('检查学者的书桌...', 'info');
+            await delay(1500);
+            
+            const goldFound = Math.floor(Math.random() * 15) + 5; // 5-20金币
+            gameState.gold += goldFound;
+            addLog(`找到 ${goldFound} 枚金币！当前金币：${gameState.gold}`, 'success');
+            
+            saveGameState();
+            updateUI();
+        }
+        
+        // 播放音乐
+        const music = document.getElementById('bg-music');
+        if (gameState.musicEnabled) {
+            music.volume = 0.3;
+            document.body.addEventListener('click', () => {
+                music.play().catch(e => console.log('需点击页面后播放音乐'));
+            }, { once: true });
+        }
+    </script>
+</body>
+</html>

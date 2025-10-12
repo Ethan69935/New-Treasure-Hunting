@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>神庙出口 - 寻宝大冒险</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="scene-page exit">
+    <div class="container">
+        <div class="scene-header">
+            <h1>🚪 神庙出口</h1>
+            <button class="back-btn" onclick="window.location.href='index.html'">返回地图</button>
+        </div>
+        
+        <div class="status-panel">
+            <p>金币: <span id="gold">50</span> | 打手: <span id="helpers">0</span>人 | 宝藏: <span id="treasure">未找到</span></p>
+        </div>
+        
+        <div class="scene-content">
+            <p class="description">终于到达出口！但打手们要求支付尾款才能帮你带走宝藏...</p>
+            
+            <div class="actions">
+                <button onclick="payHelpers()">支付尾款（8金币/人）</button>
+                <button onclick="endAdventure()">结束冒险</button>
+            </div>
+            
+            <div class="log-container">
+                <h3>结算日志</h3>
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 出口背景音乐 -->
+    <audio id="bg-music" loop>
+        <source src="audio/exit.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="js/game.js"></script>
+    <script>
+        const gameState = loadGameState();
+        updateUI();
+        
+        // 检查是否找到宝藏
+        if (!gameState.hasTreasure) {
+            addLog('还没找到宝藏，无法结算！', 'error');
+            document.querySelector('button[onclick="payHelpers()"]').disabled = true;
+            document.querySelector('button[onclick="endAdventure()"]').disabled = true;
+        } else {
+            addLog('你带着宝藏来到出口，打手们在等待结算...', 'info');
+        }
+        
+        // 更新宝藏显示
+        document.querySelectorAll('#treasure').forEach(el => {
+            el.textContent = gameState.hasTreasure ? '已找到' : '未找到';
+        });
+        
+        // 支付尾款
+        async function payHelpers() {
+            if (gameState.sceneCompleted.exit) {
+                addLog('冒险已完成，感谢参与！', 'info');
+                return;
+            }
+            
+            const needGold = gameState.helpers * 8;
+            addLog(`打手们要求支付尾款：${needGold}金币（${gameState.helpers}人×8）`, 'info');
+            await delay(1000);
+            
+            if (gameState.gold >= needGold) {
+                gameState.gold -= needGold;
+                gameState.sceneCompleted.exit = true;
+                addLog(`支付成功！最终剩余金币：${gameState.gold}，成功带走宝藏！`, 'success');
+                addLog('🏆 恭喜完成所有冒险！', 'success');
+            } else {
+                addLog(`金币不足（需要${needGold}，只有${gameState.gold}），打手抢走了宝藏...`, 'error');
+                gameState.sceneCompleted.exit = true;
+            }
+            saveGameState();
+            updateUI();
+        }
+        
+        // 结束冒险
+        function endAdventure() {
+            if (gameState.sceneCompleted.exit) {
+                window.location.href = 'index.html';
+            } else {
+                addLog('请先支付尾款', 'warning');
+            }
+        }
+        
+        // 播放音乐
+        const music = document.getElementById('bg-music');
+        if (gameState.musicEnabled) {
+            music.volume = 0.3;
+            document.body.addEventListener('click', () => {
+                music.play().catch(e => console.log('需点击页面后播放音乐'));
+            }, { once: true });
+        }
+    </script>
+</body>
+</html>
