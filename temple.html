@@ -15,6 +15,7 @@
         
         <div class="status-panel">
             <p>金币: <span id="gold">50</span> | 打手: <span id="helpers">0</span>人 | 宝藏: <span id="treasure">未找到</span></p>
+            <button class="music-toggle" onclick="toggleMusic()">🎵 音乐：开启</button>
         </div>
         
         <div class="scene-content">
@@ -32,17 +33,17 @@
         </div>
     </div>
 
-    <!-- 神庙背景音乐 -->
+    <!-- 神庙背景音乐（紧张冒险风格） -->
     <audio id="bg-music" loop>
-        <source src="audio/temple.mp3" type="audio/mpeg">
-    </audio>
+        <source src="https://mixkit.co/music/preview/mixkit-epic-battle-game-music-224.mp3" type="audio/mpeg">
+    
 
     <script src="js/game.js"></script>
     <script>
         const gameState = loadGameState();
         updateUI();
         
-        // 检查前置条件（至少3名打手）
+        // 检查前置条件
         if (gameState.helpers < 3) {
             addLog('提示：至少需要3名打手才能对抗守卫！', 'error');
             document.querySelector('button[onclick="fightGuard()"]').disabled = true;
@@ -54,13 +55,43 @@
         document.querySelectorAll('#treasure').forEach(el => {
             el.textContent = gameState.hasTreasure ? '已找到' : '未找到';
         });
-        
-        // 对抗守卫
+
+        // 音乐初始化
+        const music = document.getElementById('bg-music');
+        music.volume = 0.2;
+        updateMusicButton();
+
+        // 首次点击播放音乐
+        document.body.addEventListener('click', playMusicOnFirstClick, { once: true });
+
+        // 音乐控制函数
+        function playMusicOnFirstClick() {
+            if (gameState.musicEnabled && music.paused) {
+                music.play().catch(e => console.log('音乐需点击后播放'));
+            }
+        }
+
+        function toggleMusic() {
+            gameState.musicEnabled = !gameState.musicEnabled;
+            if (gameState.musicEnabled) {
+                music.play();
+            } else {
+                music.pause();
+            }
+            updateMusicButton();
+            saveGameState();
+        }
+
+        function updateMusicButton() {
+            const btn = document.querySelector('.music-toggle');
+            btn.textContent = gameState.musicEnabled ? '🎵 音乐：开启' : '🎵 音乐：关闭';
+        }
+
+        // 原有游戏逻辑
         async function fightGuard() {
             addLog('指挥打手对抗守卫！', 'info');
             await delay(2000);
             
-            // 成功率 = 打手数 × 20%（3人60%，4人80%，5人以上100%）
             const successRate = Math.min(gameState.helpers * 0.2, 1);
             if (Math.random() < successRate) {
                 addLog('成功击退守卫！可以进入神庙内部了', 'success');
@@ -73,7 +104,6 @@
             }
         }
         
-        // 搜索宝藏（解锁出口）
         async function searchTreasure() {
             if (gameState.hasTreasure) {
                 addLog('已经找到宝藏，去出口结算吧！', 'info');
@@ -83,12 +113,11 @@
             addLog('在神庙深处搜索宝藏...', 'info');
             await delay(2500);
             
-            // 找到宝藏概率 = 打手数 × 15%（3人45%，4人60%...）
             const findRate = Math.min(gameState.helpers * 0.15, 0.8);
             if (Math.random() < findRate) {
                 gameState.hasTreasure = true;
                 gameState.sceneCompleted.temple = true;
-                gameState.scenes.exit = true; // 解锁出口
+                gameState.scenes.exit = true;
                 addLog('🎉 找到黄金宝藏！神庙出口已解锁', 'success');
                 document.querySelectorAll('#treasure').forEach(el => {
                     el.textContent = '已找到';
@@ -98,15 +127,6 @@
             }
             saveGameState();
             updateUI();
-        }
-        
-        // 播放音乐
-        const music = document.getElementById('bg-music');
-        if (gameState.musicEnabled) {
-            music.volume = 0.3;
-            document.body.addEventListener('click', () => {
-                music.play().catch(e => console.log('需点击页面后播放音乐'));
-            }, { once: true });
         }
     </script>
 </body>
