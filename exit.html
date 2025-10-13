@@ -15,6 +15,7 @@
         
         <div class="status-panel">
             <p>金币: <span id="gold">50</span> | 打手: <span id="helpers">0</span>人 | 宝藏: <span id="treasure">未找到</span></p>
+            <button class="music-toggle" onclick="toggleMusic()">🎵 音乐：开启</button>
         </div>
         
         <div class="scene-content">
@@ -32,10 +33,10 @@
         </div>
     </div>
 
-    <!-- 出口背景音乐 -->
+    <!-- 出口背景音乐（胜利庆祝风格） -->
     <audio id="bg-music" loop>
-        <source src="audio/exit.mp3" type="audio/mpeg">
-    </audio>
+        <source src="https://mixkit.co/music/preview/mixkit-video-game-win-2019.mp3" type="audio/mpeg">
+    
 
     <script src="js/game.js"></script>
     <script>
@@ -55,8 +56,39 @@
         document.querySelectorAll('#treasure').forEach(el => {
             el.textContent = gameState.hasTreasure ? '已找到' : '未找到';
         });
-        
-        // 支付尾款
+
+        // 音乐初始化
+        const music = document.getElementById('bg-music');
+        music.volume = 0.2;
+        updateMusicButton();
+
+        // 首次点击播放音乐
+        document.body.addEventListener('click', playMusicOnFirstClick, { once: true });
+
+        // 音乐控制函数
+        function playMusicOnFirstClick() {
+            if (gameState.musicEnabled && music.paused) {
+                music.play().catch(e => console.log('音乐需点击后播放'));
+            }
+        }
+
+        function toggleMusic() {
+            gameState.musicEnabled = !gameState.musicEnabled;
+            if (gameState.musicEnabled) {
+                music.play();
+            } else {
+                music.pause();
+            }
+            updateMusicButton();
+            saveGameState();
+        }
+
+        function updateMusicButton() {
+            const btn = document.querySelector('.music-toggle');
+            btn.textContent = gameState.musicEnabled ? '🎵 音乐：开启' : '🎵 音乐：关闭';
+        }
+
+        // 原有游戏逻辑
         async function payHelpers() {
             if (gameState.sceneCompleted.exit) {
                 addLog('冒险已完成，感谢参与！', 'info');
@@ -80,22 +112,12 @@
             updateUI();
         }
         
-        // 结束冒险
         function endAdventure() {
             if (gameState.sceneCompleted.exit) {
                 window.location.href = 'index.html';
             } else {
                 addLog('请先支付尾款', 'warning');
             }
-        }
-        
-        // 播放音乐
-        const music = document.getElementById('bg-music');
-        if (gameState.musicEnabled) {
-            music.volume = 0.3;
-            document.body.addEventListener('click', () => {
-                music.play().catch(e => console.log('需点击页面后播放音乐'));
-            }, { once: true });
         }
     </script>
 </body>
