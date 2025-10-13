@@ -15,6 +15,7 @@
         
         <div class="status-panel">
             <p>金币: <span id="gold">50</span> | 打手: <span id="helpers">0</span>人 | 线索: <span id="clue">未找到</span></p>
+            <button class="music-toggle" onclick="toggleMusic()">🎵 音乐：开启</button>
         </div>
         
         <div class="scene-content">
@@ -32,17 +33,17 @@
         </div>
     </div>
 
-    <!-- 酒馆背景音乐 -->
+    <!-- 酒馆背景音乐（热闹休闲风格） -->
     <audio id="bg-music" loop>
-        <source src="audio/tavern.mp3" type="audio/mpeg">
-    </audio>
+        <source src="https://mixkit.co/music/preview/mixkit-medieval-tavern-background-music-637.mp3" type="audio/mpeg">
+    
 
     <script src="js/game.js"></script>
     <script>
         const gameState = loadGameState();
         updateUI();
         
-        // 检查是否解锁（必须完成图书馆）
+        // 检查解锁状态
         if (!gameState.sceneCompleted.library) {
             addLog('老板："没线索？先去图书馆找藏宝图再来！"', 'error');
             document.querySelector('button[onclick="hireHelper()"]').disabled = true;
@@ -50,8 +51,39 @@
         } else {
             addLog('你走进酒馆，冒险者们投来好奇的目光...', 'info');
         }
-        
-        // 雇佣打手（核心：解锁神庙）
+
+        // 音乐初始化
+        const music = document.getElementById('bg-music');
+        music.volume = 0.2;
+        updateMusicButton();
+
+        // 首次点击播放音乐
+        document.body.addEventListener('click', playMusicOnFirstClick, { once: true });
+
+        // 音乐控制函数
+        function playMusicOnFirstClick() {
+            if (gameState.musicEnabled && music.paused) {
+                music.play().catch(e => console.log('音乐需点击后播放'));
+            }
+        }
+
+        function toggleMusic() {
+            gameState.musicEnabled = !gameState.musicEnabled;
+            if (gameState.musicEnabled) {
+                music.play();
+            } else {
+                music.pause();
+            }
+            updateMusicButton();
+            saveGameState();
+        }
+
+        function updateMusicButton() {
+            const btn = document.querySelector('.music-toggle');
+            btn.textContent = gameState.musicEnabled ? '🎵 音乐：开启' : '🎵 音乐：关闭';
+        }
+
+        // 原有游戏逻辑
         async function hireHelper() {
             if (gameState.gold < 10) {
                 addLog('金币不足！雇佣1人需要10金币', 'error');
@@ -65,13 +97,11 @@
             addLog('与强壮的冒险者交谈，试图雇佣他...', 'info');
             await delay(1500);
             
-            // 80%雇佣成功
             if (Math.random() < 0.8) {
                 gameState.gold -= 10;
                 gameState.helpers += 1;
                 addLog(`成功雇佣1名打手！剩余金币：${gameState.gold}，当前共${gameState.helpers}人`, 'success');
                 
-                // 雇佣3人以上解锁神庙
                 if (gameState.helpers >= 3) {
                     gameState.sceneCompleted.tavern = true;
                     gameState.scenes.temple = true;
@@ -84,7 +114,6 @@
             updateUI();
         }
         
-        // 购买情报
         async function buyInfo() {
             if (gameState.gold < 5) {
                 addLog('金币不足！情报需要5金币', 'error');
@@ -105,15 +134,6 @@
             
             saveGameState();
             updateUI();
-        }
-        
-        // 播放音乐
-        const music = document.getElementById('bg-music');
-        if (gameState.musicEnabled) {
-            music.volume = 0.3;
-            document.body.addEventListener('click', () => {
-                music.play().catch(e => console.log('需点击页面后播放音乐'));
-            }, { once: true });
         }
     </script>
 </body>
