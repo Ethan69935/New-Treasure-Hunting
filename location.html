@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寻宝大冒险 - 地点场景</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: white;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* 场景容器 */
+        .scene-container {
+            width: 100vw;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 1s ease-in-out;
+            overflow: hidden;
+        }
+        
+        /* 淡入动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        /* 场景内容动画 */
+        .scene-content {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.8s ease-out;
+            border: 1px solid rgba(241, 196, 15, 0.3);
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* 场景内容 */
+        .scene-content {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* 标题 */
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #f1c40f;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        
+        /* 场景描述 */
+        .scene-description {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        /* 游戏状态 */
+        .game-status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .status-label {
+            font-weight: bold;
+            color: #f1c40f;
+        }
+        
+        /* 按钮组 */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(241, 196, 15, 0.3);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(241, 196, 15, 0.5);
+        }
+        
+        button:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+        
+        button.secondary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+        }
+        
+        button.secondary:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+            box-shadow: 0 12px 35px rgba(52, 152, 219, 0.5);
+        }
+        
+        button:disabled {
+            background: linear-gradient(135deg, #7f8c8d 0%, #95a5a6 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:disabled:hover::before {
+            left: -100%;
+        }
+        
+        /* 返回按钮 */
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+        
+        /* 日志区域 */
+        .log-area {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            max-height: 300px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .log-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #f1c40f;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        /* 音乐控制 */
+        .music-control {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* 场景特定样式 */
+        .scene-library {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><defs><linearGradient id="libGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%238b4513;stop-opacity:0.8" /><stop offset="100%" style="stop-color:%23a0522d;stop-opacity:0.8" /></linearGradient></defs><rect width="100%" height="100%" fill="url(%23libGrad)"/><text x="50%" y="50%" font-size="100" fill="white" font-weight="bold" text-anchor="middle">📚 古老图书馆</text></svg>');
+        }
+        
+        .scene-guild {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><defs><linearGradient id="guildGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%232ecc71;stop-opacity:0.8" /><stop offset="100%" style="stop-color:%2327ae60;stop-opacity:0.8" /></linearGradient></defs><rect width="100%" height="100%" fill="url(%23guildGrad)"/><text x="50%" y="50%" font-size="100" fill="white" font-weight="bold" text-anchor="middle">⚔️ 冒险者工会</text></svg>');
+        }
+        
+        .scene-forest {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><defs><linearGradient id="forestGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%233498db;stop-opacity:0.8" /><stop offset="100%" style="stop-color:%232980b9;stop-opacity:0.8" /></linearGradient></defs><rect width="100%" height="100%" fill="url(%23forestGrad)"/><text x="50%" y="50%" font-size="100" fill="white" font-weight="bold" text-anchor="middle">🌲 神秘森林</text></svg>');
+        }
+        
+        .scene-temple {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><defs><linearGradient id="templeGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23e74c3c;stop-opacity:0.8" /><stop offset="100%" style="stop-color:%23c0392b;stop-opacity:0.8" /></linearGradient></defs><rect width="100%" height="100%" fill="url(%23templeGrad)"/><text x="50%" y="50%" font-size="100" fill="white" font-weight="bold" text-anchor="middle">⛩️ 神圣神庙</text></svg>');
+        }
+        
+        .scene-treasure {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><defs><linearGradient id="treasureGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23ffd700;stop-opacity:0.8" /><stop offset="100%" style="stop-color:%23f39c12;stop-opacity:0.8" /></linearGradient></defs><rect width="100%" height="100%" fill="url(%23treasureGrad)"/><text x="50%" y="50%" font-size="100" fill="white" font-weight="bold" text-anchor="middle">💎 宝藏地点</text></svg>');
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景音乐 -->
+    <audio id="locationMusic" loop autoplay>
+        <source id="musicSource" src="" type="audio/mpeg">
+    </audio>
+    
+    <div class="scene-container" id="sceneContainer">
+        <!-- 返回主游戏按钮 -->
+        <button class="back-button" onclick="goToMainGame()" style="top: 70px; left: 20px;">🎮 返回主游戏</button>
+        
+        <!-- 返回全景图按钮 -->
+        <button class="back-button" onclick="goBackToPanorama()">🏠 返回全景图</button>
+        
+        <!-- 音乐控制 -->
+        <div class="music-control" onclick="toggleMusic()">
+            <span id="musicIcon">🔊</span>
+            <span>背景音乐</span>
+        </div>
+        
+        <!-- 场景内容 -->
+        <div class="scene-content">
+            <h1 id="locationTitle">地点名称</h1>
+            <div class="scene-description" id="locationDescription">地点描述</div>
+            
+            <div class="game-status">
+                <div class="status-item">
+                    <span class="status-label">金币:</span>
+                    <span id="gold">100</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">打手:</span>
+                    <span id="helpers">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">线索:</span>
+                    <span id="clues">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">当前位置:</span>
+                    <span id="currentLocation">未知</span>
+                </div>
+            </div>
+            
+            <div class="button-group" id="actionButtons">
+                <!-- 动态生成按钮 -->
+            </div>
+        </div>
+        
+        <!-- 日志区域 -->
+        <div class="log-area">
+            <div class="log-title">📝 冒险日志</div>
+            <div id="logContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏配置
+        const GAME_CONFIG = {
+            initialGold: 100,
+            helperCost: 10,
+            helperReward: 8,
+            helperCompensation: 5,
+            clueReward: 20,
+            treasureReward: 500
+        };
+        
+        // 场景顺序配置
+        const SCENE_ORDER = ["library", "guild", "forest", "temple", "treasure"];
+        
+        // 地点配置
+        const LOCATIONS = {
+            library: {
+                name: "古老图书馆",
+                description: "这里弥漫着古老的书香，书架上摆满了神秘的古籍。你可以在这里寻找线索。",
+                musicUrl: "https://www.bensound.com/bensound-music/bensound-acousticbreeze.mp3",
+                actions: [
+                    { id: "search", name: "寻找线索", action: "searchClue" },
+                    { id: "decode", name: "解码线索", action: "decodeClue", condition: (data) => data.clues >= 1 },
+                    { id: "goToGuild", name: "前往工会", action: "goToLocation", params: { location: "guild" }, condition: (data) => data.unlockedScenes.includes("guild") }
+                ]
+            },
+            guild: {
+                name: "冒险者工会",
+                description: "这里聚集着各种冒险者，你可以雇佣打手来帮助你。",
+                musicUrl: "https://www.bensound.com/bensound-music/bensound-epic.mp3",
+                actions: [
+                    { id: "hire", name: "雇佣打手", action: "hireHelper" },
+                    { id: "goToLibrary", name: "返回图书馆", action: "goToLocation", params: { location: "library" } },
+                    { id: "goToForest", name: "前往森林", action: "goToLocation", params: { location: "forest" }, condition: (data) => data.unlockedScenes.includes("forest") }
+                ]
+            },
+            forest: {
+                name: "神秘森林",
+                description: "茂密的树林中充满了未知的危险，你需要小心穿越。",
+                musicUrl: "https://www.bensound.com/bensound-music/bensound-jazzyfrenchy.mp3",
+                actions: [
+                    { id: "cross", name: "穿越森林", action: "crossForest" },
+                    { id: "goToGuild", name: "返回工会", action: "goToLocation", params: { location: "guild" } },
+                    { id: "goToTemple", name: "前往神庙", action: "goToLocation", params: { location: "temple" }, condition: (data) => data.unlockedScenes.includes("temple") }
+                ]
+            },
+            temple: {
+                name: "神圣神庙",
+                description: "古老的神庙中隐藏着宝藏的秘密，但也有守卫巡逻。",
+                musicUrl: "https://www.bensound.com/bensound-music/bensound-relaxing.mp3",
+                actions: [
+                    { id: "searchTemple", name: "搜索神庙", action: "searchTemple" },
+                    { id: "goToForest", name: "返回森林", action: "goToLocation", params: { location: "forest" } },
+                    { id: "goToTreasure", name: "前往宝藏点", action: "goToLocation", params: { location: "treasure" }, condition: (data) => data.unlockedScenes.includes("treasure") }
+                ]
+            },
+            treasure: {
+                name: "宝藏地点",
+                description: "传说中的宝藏就藏在这里，你需要足够的实力才能获得它。",
+                musicUrl: "https://www.bensound.com/bensound-music/bensound-happyrock.mp3",
+                actions: [
+                    { id: "openTreasure", name: "打开宝箱", action: "openTreasure" },
+                    { id: "goToTemple", name: "返回神庙", action: "goToLocation", params: { location: "temple" } }
+                ]
+            }
+        };
+        
+        // 当前游戏数据
+        let gameData;
+        // 当前地点
+        let currentLocation;
+        // 音乐状态
+        let musicPlaying = true;
+        // 背景音乐元素
+        const locationMusic = document.getElementById('locationMusic');
+        
+        // 页面加载时初始化
+        window.addEventListener('load', () => {
+            // 获取URL参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const loc = urlParams.get('loc') || 'library';
+            
+            // 初始化游戏
+            initGame(loc);
+            
+            // 播放音乐
+            playMusic();
+        });
+        
+        // 初始化游戏
+        function initGame(location) {
+            // 获取保存的游戏数据
+            gameData = getGameData();
+            // 更新当前位置
+            gameData.currentLocation = location;
+            currentLocation = location;
+            
+            // 更新UI
+            updateUI();
+            // 生成按钮
+            generateButtons();
+            // 记录日志
+            log(`到达${LOCATIONS[location].name}`);
+        }
+        
+        // 更新UI
+        function updateUI() {
+            const location = LOCATIONS[currentLocation];
+            
+            // 设置场景背景
+            document.getElementById('sceneContainer').className = `scene-container scene-${currentLocation}`;
+            
+            // 更新场景信息
+            document.getElementById('locationTitle').textContent = location.name;
+            document.getElementById('locationDescription').textContent = location.description;
+            document.getElementById('currentLocation').textContent = location.name;
+            
+            // 更新游戏状态
+            document.getElementById('gold').textContent = gameData.gold;
+            document.getElementById('helpers').textContent = gameData.helpers;
+            document.getElementById('clues').textContent = gameData.clues;
+        }
+        
+        // 生成按钮
+        function generateButtons() {
+            const buttonsContainer = document.getElementById('actionButtons');
+            buttonsContainer.innerHTML = '';
+            
+            const actions = LOCATIONS[currentLocation].actions;
+            
+            actions.forEach(action => {
+                const button = document.createElement('button');
+                button.textContent = action.name;
+                
+                // 检查条件
+                let disabled = false;
+                if (action.condition) {
+                    disabled = !action.condition(gameData);
+                }
+                button.disabled = disabled;
+                
+                // 添加点击事件
+                button.addEventListener('click', () => {
+                    executeAction(action);
+                });
+                
+                buttonsContainer.appendChild(button);
+            });
+        }
+        
+        // 执行动作
+        async function executeAction(action) {
+            switch (action.action) {
+                case 'searchClue':
+                    await searchClue();
+                    break;
+                case 'decodeClue':
+                    await decodeClue();
+                    break;
+                case 'hireHelper':
+                    await hireHelper();
+                    break;
+                case 'crossForest':
+                    await crossForest();
+                    break;
+                case 'searchTemple':
+                    await searchTemple();
+                    break;
+                case 'openTreasure':
+                    await openTreasure();
+                    break;
+                case 'goToLocation':
+                    goToLocation(action.params.location);
+                    break;
+            }
+        }
+        
+        // 搜索线索
+        async function searchClue() {
+            if (gameData.clues >= 1) {
+                log('已经找到了足够的线索！', 'warning');
+                return;
+            }
+            
+            log('开始在图书馆中搜索线索...');
+            await delay(1000);
+            
+            log('找到了一条古老的线索！', 'success');
+            gameData.clues += 1;
+            gameData.gold += GAME_CONFIG.clueReward;
+            log(`获得了${GAME_CONFIG.clueReward}金币和1条线索！`, 'success');
+            
+            updateGameData();
+        }
+        
+        // 解码线索
+        async function decodeClue() {
+            log('尝试解码古代文字...');
+            await delay(1500);
+            
+            log('解码成功！发现了宝藏的线索！', 'success');
+            log('线索指向了冒险者工会，你需要去那里雇佣打手！', 'success');
+            
+            // 解锁工会场景
+            if (!gameData.unlockedScenes.includes('guild')) {
+                gameData.unlockedScenes.push('guild');
+                log('🎉 解锁了新场景：冒险者工会！', 'success');
+            }
+            
+            // 标记图书馆场景完成
+            if (!gameData.completedScenes.includes('library')) {
+                gameData.completedScenes.push('library');
+            }
+            
+            updateGameData();
+        }
+        
+        // 雇佣打手
+        async function hireHelper() {
+            if (gameData.gold < GAME_CONFIG.helperCost) {
+                log('金币不足，无法雇佣打手！', 'error');
+                return;
+            }
+            
+            log('在工会中寻找合适的打手...');
+            await delay(1000);
+            
+            const success = Math.random() < 0.5;
+            if (success) {
+                gameData.gold -= GAME_CONFIG.helperCost;
+                gameData.helpers += 1;
+                log('成功雇佣了一名打手！', 'success');
+                
+                // 当雇佣至少1名打手时，解锁森林场景
+                if (gameData.helpers >= 1 && !gameData.unlockedScenes.includes('forest')) {
+                    gameData.unlockedScenes.push('forest');
+                    log('🎉 解锁了新场景：神秘森林！', 'success');
+                    log('你现在可以前往神秘森林冒险了！', 'success');
+                }
+            } else {
+                log('雇佣失败，候选人拒绝了你的邀请...', 'error');
+            }
+            
+            updateGameData();
+        }
+        
+        // 穿越森林
+        async function crossForest() {
+            log('开始穿越神秘森林...');
+            await delay(2000);
+            
+            const success = Math.random() > 0.25;
+            if (success) {
+                log('成功穿越森林！', 'success');
+                
+                // 在森林中可以找到第二个线索
+                if (gameData.clues < 2) {
+                    log('在森林中发现了另一条线索！', 'success');
+                    gameData.clues += 1;
+                    log('这条线索指向了神圣神庙，那里可能有宝藏的位置！', 'success');
+                }
+                
+                // 解锁神庙场景
+                if (!gameData.unlockedScenes.includes('temple')) {
+                    gameData.unlockedScenes.push('temple');
+                    log('🎉 解锁了新场景：神圣神庙！', 'success');
+                }
+            } else {
+                log('在森林中迷失了方向，耽误了时间...', 'warning');
+                // 有概率损失金币
+                const goldLoss = Math.floor(Math.random() * 20) + 10;
+                gameData.gold = Math.max(0, gameData.gold - goldLoss);
+                log(`在森林中遇到了小偷，损失了${goldLoss}金币！`, 'error');
+            }
+            
+            updateGameData();
+        }
+        
+        // 搜索神庙
+        async function searchTemple() {
+            log('在神庙中搜索宝藏...');
+            await delay(1500);
+            
+            // 触发守卫战斗
+            log('神庙守卫出现了！', 'warning');
+            log('守卫看起来非常强大，你必须与他们战斗！', 'warning');
+            await delay(1000);
+            
+            if (gameData.helpers > 0) {
+                // 有打手：计算战斗结果
+                const battleSuccess = Math.random() > 0.3;
+                if (battleSuccess) {
+                    // 胜利
+                    const lostHelpers = Math.floor(Math.random() * 2) + 1;
+                    const actualLost = Math.min(lostHelpers, gameData.helpers);
+                    gameData.helpers -= actualLost;
+                    gameData.lostHelpers += actualLost;
+                    
+                    log(`与守卫战斗，损失了${actualLost}名打手，但成功击退了守卫！`, 'success');
+                    log('在神庙中发现了宝藏的位置！', 'success');
+                    
+                    // 解锁宝藏场景
+                    if (!gameData.unlockedScenes.includes('treasure')) {
+                        gameData.unlockedScenes.push('treasure');
+                        log('🎉 解锁了新场景：宝藏地点！', 'success');
+                    }
+                } else {
+                    // 失败
+                    log('战斗失败！所有打手都被击败了！', 'error');
+                    gameData.helpers = 0;
+                    gameData.lostHelpers = 0;
+                    gameData.gold = Math.floor(gameData.gold * 0.5);
+                    log('你被守卫击败，失去了所有打手和一半金币！', 'error');
+                }
+            } else {
+                // 没有打手：直接失败
+                log('没有打手保护，你被守卫轻松抓住了！', 'error');
+                gameOver('失败', '没有打手保护，被守卫抓住');
+                return;
+            }
+            
+            updateGameData();
+        }
+        
+        // 游戏结束函数
+        function gameOver(result, reason) {
+            gameData.gameOver = true;
+            gameData.gameResult = result;
+            gameData.status = result === '胜利' ? '游戏胜利' : '游戏失败';
+            
+            log(`${result}！${reason}`, result === '胜利' ? 'success' : 'error');
+            log('游戏已结束，点击重新开始按钮开始新游戏！', 'info');
+            
+            // 添加重新开始按钮
+            const restartBtn = document.createElement('button');
+            restartBtn.textContent = '重新开始游戏';
+            restartBtn.className = 'secondary';
+            restartBtn.onclick = () => {
+                resetGameData();
+                window.location.reload();
+            };
+            
+            const actionButtons = document.getElementById('actionButtons');
+            actionButtons.innerHTML = '';
+            actionButtons.appendChild(restartBtn);
+            
+            updateGameData();
+        }
+        
+        // 打开宝藏
+        async function openTreasure() {
+            log('尝试打开神秘宝箱...');
+            await delay(2000);
+            
+            // 检查是否有足够的打手保护
+            if (gameData.helpers < 1) {
+                log('没有打手保护，宝箱的机关被触发了！', 'error');
+                gameOver('失败', '没有打手保护，触发了宝箱的机关');
+                return;
+            }
+            
+            log('恭喜！你找到了传说中的宝藏！', 'success');
+            log(`获得了${GAME_CONFIG.treasureReward}金币！`, 'success');
+            
+            gameData.gold += GAME_CONFIG.treasureReward;
+            
+            // 支付打手报酬
+            const payment = gameData.helpers * GAME_CONFIG.helperReward;
+            gameData.gold -= payment;
+            log(`支付${payment}金币给${gameData.helpers}名打手作为报酬`, 'info');
+            
+            // 游戏胜利
+            gameOver('胜利', `成功找到宝藏，获得了${GAME_CONFIG.treasureReward}金币`);
+            
+            updateGameData();
+        }
+        
+        // 前往其他地点
+        function goToLocation(location) {
+            log(`前往${LOCATIONS[location].name}`);
+            // 更新当前位置并保存完整游戏数据
+            gameData.currentLocation = location;
+            saveGameData(gameData);
+            window.location.href = `location.html?loc=${location}`;
+        }
+        
+        // 返回全景图
+        function goBackToPanorama() {
+            // 保存完整游戏数据
+            saveGameData(gameData);
+            window.location.href = 'panorama.html';
+        }
+        
+        // 更新游戏数据
+        function updateGameData() {
+            updateUI();
+            generateButtons();
+            saveGameData(gameData);
+        }
+        
+        // 保存游戏数据
+        function saveGameData(data) {
+            localStorage.setItem('treasureHuntGame', JSON.stringify(data));
+        }
+        
+        // 获取游戏数据
+        function getGameData() {
+            const savedData = localStorage.getItem('treasureHuntGame');
+            return savedData ? JSON.parse(savedData) : {
+                gold: GAME_CONFIG.initialGold,
+                helpers: 0,
+                lostHelpers: 0,
+                clues: 0,
+                unlockedScenes: ['library'], // 初始只解锁图书馆
+                completedScenes: [],
+                currentLocation: 'library',
+                phase: '未开始',
+                status: '就绪',
+                gameOver: false,
+                gameResult: null
+            };
+        }
+        
+        // 重置游戏数据
+        function resetGameData() {
+            localStorage.setItem('treasureHuntGame', JSON.stringify({
+                gold: GAME_CONFIG.initialGold,
+                helpers: 0,
+                lostHelpers: 0,
+                clues: 0,
+                unlockedScenes: ['library'],
+                completedScenes: [],
+                currentLocation: 'library',
+                phase: '未开始',
+                status: '就绪',
+                gameOver: false,
+                gameResult: null
+            }));
+        }
+        
+        // 日志记录
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // 限制日志数量
+            if (logContainer.children.length > 10) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        // 延迟函数
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // 返回主游戏界面
+        function goToMainGame() {
+            // 保存当前游戏数据
+            saveGameData(gameData);
+            window.location.href = 'index.html';
+        }
+        
+        // 音乐控制
+        function playMusic() {
+            // 设置当前地点的音乐
+            const musicSource = document.getElementById('musicSource');
+            musicSource.src = LOCATIONS[currentLocation].musicUrl;
+            locationMusic.load();
+            
+            locationMusic.play().catch(err => {
+                console.log('需要用户交互才能播放音乐');
+            });
+            musicPlaying = true;
+            document.getElementById('musicIcon').textContent = '🔊';
+        }
+        
+        function pauseMusic() {
+            locationMusic.pause();
+            musicPlaying = false;
+            document.getElementById('musicIcon').textContent = '🔇';
+        }
+        
+        function toggleMusic() {
+            if (musicPlaying) {
+                pauseMusic();
+            } else {
+                playMusic();
+            }
+        }
+    </script>
+</body>
+</html>

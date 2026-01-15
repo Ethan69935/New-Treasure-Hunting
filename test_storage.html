@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试游戏数据保存</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .data {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 游戏数据保存测试</h1>
+        
+        <div class="section">
+            <h2>📊 当前游戏数据</h2>
+            <div class="data" id="currentData">加载中...</div>
+        </div>
+        
+        <div class="section">
+            <h2>🔧 测试操作</h2>
+            <button onclick="loadGameData()">加载游戏数据</button>
+            <button onclick="saveTestData()">保存测试数据</button>
+            <button onclick="clearGameData()">清除游戏数据</button>
+            <button onclick="testGameData()">运行完整测试</button>
+        </div>
+        
+        <div class="section">
+            <h2>📝 测试日志</h2>
+            <div class="data" id="testLog"></div>
+        </div>
+        
+        <div class="section">
+            <h2>🔗 游戏链接</h2>
+            <ul>
+                <li><a href="index.html" target="_blank">主游戏</a></li>
+                <li><a href="panorama.html" target="_blank">全景页面</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logElement = document.getElementById('testLog');
+            logElement.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function loadGameData() {
+            const savedData = localStorage.getItem('treasureHuntGame');
+            const dataElement = document.getElementById('currentData');
+            if (savedData) {
+                const gameData = JSON.parse(savedData);
+                dataElement.textContent = JSON.stringify(gameData, null, 2);
+                log('✓ 成功加载游戏数据');
+            } else {
+                dataElement.textContent = '没有保存的游戏数据';
+                log('⚠️  没有找到保存的游戏数据');
+            }
+        }
+        
+        function saveTestData() {
+            const testData = {
+                gold: 250,
+                helpers: 3,
+                lostHelpers: 1,
+                clues: 2,
+                currentLocation: 'forest',
+                phase: '进行中',
+                status: '穿越森林',
+                isPlaying: true,
+                unlockedScenes: ['library', 'guild', 'forest'],
+                completedScenes: ['library', 'guild'],
+                gameOver: false,
+                gameResult: null
+            };
+            localStorage.setItem('treasureHuntGame', JSON.stringify(testData));
+            log('✓ 成功保存测试数据');
+            loadGameData();
+        }
+        
+        function clearGameData() {
+            localStorage.removeItem('treasureHuntGame');
+            log('✓ 成功清除游戏数据');
+            loadGameData();
+        }
+        
+        function testGameData() {
+            log('🔄 开始完整测试...');
+            
+            // 测试1: 清除现有数据
+            clearGameData();
+            
+            // 测试2: 保存测试数据
+            setTimeout(() => {
+                saveTestData();
+            }, 500);
+            
+            // 测试3: 重新加载数据
+            setTimeout(() => {
+                const savedData = localStorage.getItem('treasureHuntGame');
+                if (savedData) {
+                    const gameData = JSON.parse(savedData);
+                    if (gameData.gold === 250 && gameData.helpers === 3) {
+                        log('✅ 测试通过：数据保存和加载正常工作！');
+                    } else {
+                        log('❌ 测试失败：保存的数据与预期不符');
+                    }
+                } else {
+                    log('❌ 测试失败：无法重新加载保存的数据');
+                }
+            }, 1000);
+        }
+        
+        // 页面加载时自动加载游戏数据
+        window.addEventListener('load', () => {
+            loadGameData();
+            log('页面已加载，开始测试...');
+        });
+    </script>
+</body>
+</html>

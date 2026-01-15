@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寻宝大冒险 </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        }
+        
+        /* 分区布局 - 整体容器 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 顶部标题区 */
+        h1 {
+            text-align: center;
+            color: #f1c40f;
+            font-size: 2.5em;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        /* 中间主体区 - 左右布局 */
+        .game-panel {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        /* 左侧整体区域 - 垂直排列地图和日志 */
+        .left-section {
+            display: flex;
+            flex-direction: column;
+            flex: 2;
+        }
+
+        /* 左侧地图动画区 - 减少空白 */
+        .map-container {
+            background-color: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 15px;
+            position: relative;
+            min-height: 280px;
+            max-height: 280px;
+            min-width: 400px;
+            max-width: 100%;
+        }
+        
+        /* 右侧信息区 - 垂直布局 */
+        .info-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 280px;
+            max-width: 350px;
+        }
+        
+        /* 状态区域 */
+        .status-container {
+            width: 100%;
+            background-color: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 20px;
+            color: #2c3e50;
+        }
+        
+        /* 控制区域 */
+        .controls-container {
+            width: 100%;
+            background-color: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 底部日志区 */
+        .log-container {
+            background-color: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 0;
+        }
+        
+
+        
+        .treasure-map {
+            width: 100%;
+            height: 250px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="250"><defs><linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%238b4513;stop-opacity:0.3" /><stop offset="100%" style="stop-color:%23a0522d;stop-opacity:0.5" /></linearGradient></defs><rect width="100%" height="100%" fill="url(%23bgGrad)"/><path d="M50,50 L750,50 L750,200 L50,200 Z" fill="none" stroke="%238b4513" stroke-width="4"/><path d="M120,125 L220,125 L320,125 L480,125 L780,125" stroke="%238b4513" stroke-width="2" stroke-dasharray="10,5"/><circle cx="120" cy="125" r="20" fill="%238b4513" opacity="0.8"/><text x="120" y="160" font-size="14" fill="%238b4513" font-weight="bold" text-anchor="middle">图书馆</text><circle cx="220" cy="125" r="20" fill="%238b4513" opacity="0.8"/><text x="220" y="160" font-size="14" fill="%238b4513" font-weight="bold" text-anchor="middle">工会</text><circle cx="320" cy="125" r="20" fill="%238b4513" opacity="0.8"/><text x="320" y="160" font-size="14" fill="%238b4513" font-weight="bold" text-anchor="middle">森林</text><circle cx="480" cy="125" r="20" fill="%238b4513" opacity="0.8"/><text x="480" y="160" font-size="14" fill="%238b4513" font-weight="bold" text-anchor="middle">神庙</text><circle cx="780" cy="125" r="20" fill="%23ffd700" opacity="0.8"/><text x="780" y="160" font-size="14" fill="%238b4513" font-weight="bold" text-anchor="middle">宝藏点</text></svg>') no-repeat center center;
+            background-size: 100% 100%;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        }
+        
+        /* 简化的玩家样式 - 优化初始位置 */
+        .player {
+            width: 30px;
+            height: 30px;
+            background-color: #e74c3c;
+            border: 3px solid white;
+            border-radius: 50%;
+            position: absolute;
+            top: 110px; /* 与新地图圆圈中心对齐 */
+            left: 105px; /* 与新地图圆圈中心对齐 */
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* 简化的守卫样式 */
+        .guard {
+            width: 25px;
+            height: 25px;
+            background-color: #3498db;
+            border: 2px solid white;
+            position: absolute;
+            top: 122px;
+            left: 462px;
+            opacity: 0;
+            z-index: 9;
+        }
+        
+        /* 简化的宝藏样式 */
+        .treasure {
+            width: 20px;
+            height: 20px;
+            background-color: #ffd700;
+            border: 2px solid #ffed4e;
+            border-radius: 50%;
+            position: absolute;
+            top: 125px;
+            left: 785px;
+            opacity: 0;
+            z-index: 8;
+        }
+        
+        /* 简化的打手样式 */
+        .helper {
+            width: 18px;
+            height: 18px;
+            background-color: #2ecc71;
+            border: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0.9;
+            z-index: 7;
+        }
+        
+        /* 金币动画 */
+        .coin {
+            width: 15px;
+            height: 15px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"><circle cx="7.5" cy="7.5" r="7" fill="%23ffd700" stroke="%23ffed4e" stroke-width="1"/><text x="7.5" y="10" text-anchor="middle" fill="%238b4513" font-size="8" font-weight="bold">$</text></svg>') no-repeat center center;
+            position: absolute;
+            opacity: 0;
+            transition: all 0.5s ease;
+            z-index: 15;
+        }
+        
+        .coin.appear {
+            opacity: 1;
+            animation: coinFloat 1.5s ease-out forwards;
+        }
+        
+        @keyframes coinFloat {
+            0% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+            50% { 
+                opacity: 1; 
+                transform: translateY(-20px) scale(1.2); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: translateY(-40px) scale(0.8); 
+            }
+        }
+        
+        /* 事件弹窗 */
+        .event-popup {
+            position: absolute;
+            background-color: rgba(255, 215, 0, 0.95);
+            border: 3px solid #ffd700;
+            border-radius: 12px;
+            padding: 15px;
+            font-weight: bold;
+            color: #8b4513;
+            font-size: 14px;
+            opacity: 0;
+            transform: scale(0) rotate(-10deg);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 20;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .event-popup.show {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+        
+        /* 按钮样式 */
+        button {
+            padding: 12px 25px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            background-color: #c0392b;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        button.secondary {
+            background-color: #3498db;
+        }
+        
+        button.secondary:hover {
+            background-color: #2980b9;
+        }
+        
+        /* 状态样式 */
+        .status-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .status-header {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .status-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        
+        .status-value {
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        /* 日志样式 */
+        .log-container {
+            background-color: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .log-entry {
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            animation: slideIn 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateX(-30px); 
+                height: 0;
+                padding: 0 12px;
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(0); 
+                height: auto;
+                padding: 12px;
+            }
+        }
+        
+        .log-entry::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+        
+        .log-entry.info {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .log-entry.info::before {
+            background-color: #28a745;
+        }
+        
+        .log-entry.warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .log-entry.warning::before {
+            background-color: #ffc107;
+        }
+        
+        .log-entry.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .log-entry.error::before {
+            background-color: #dc3545;
+        }
+        
+        .log-entry.success {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .log-entry.success::before {
+            background-color: #17a2b8;
+        }
+        
+        .log-entry.event {
+            background-color: #e2d5f8;
+            color: #4a148c;
+        }
+        
+        .log-entry.event::before {
+            background-color: #8e24aa;
+        }
+        
+        .log-timestamp {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-right: 10px;
+        }
+        
+        /* 游戏状态 */
+        .game-state {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .game-state.playing {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .game-state.success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .game-state.failed {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .game-state.waiting {
+            background-color: #ffc107;
+            color: #856404;
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景音乐 -->
+    <audio id="backgroundMusic" loop autoplay>
+        <source src="https://www.bensound.com/bensound-music/bensound-adventure.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- 音乐控制 -->
+    <div class="music-control" onclick="toggleMusic()" style="position: fixed; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.2); padding: 10px 15px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; z-index: 1000; color: white; font-weight: bold;">
+        <span id="musicIcon">🔊</span>
+        <span>背景音乐</span>
+    </div>
+    
+    <!-- 全景页按钮 -->
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
+        <button onclick="goToPanorama()" style="padding: 12px 25px; background-color: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+            🌍 进入全景页
+        </button>
+    </div>
+    
+    <div class="container">
+        <h1> 寻宝大冒险 </h1>
+        
+        <div class="game-panel">
+            <div class="left-section">
+                <div class="map-container">
+                    <div class="treasure-map" id="treasureMap">
+                        <div class="player" id="player"></div>
+                        <div class="guard" id="guard"></div>
+                        <div class="treasure" id="treasure"></div>
+                        <div class="event-popup" id="eventPopup"></div>
+                    </div>
+                </div>
+                
+                <div class="log-container" id="logContainer"></div>
+            </div>
+            
+            <div class="info-container">
+                <div class="status-container">
+                    <div class="game-state waiting" id="gameState">等待开始</div>
+                    
+                    <div class="status-section">
+                        <div class="status-header">🎮 游戏信息</div>
+                        <div class="status-item">
+                            <span class="status-label">当前位置:</span>
+                            <span class="status-value" id="currentLocation">起点</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">游戏阶段:</span>
+                            <span class="status-value" id="gamePhase">未开始</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">状态:</span>
+                            <span class="status-value" id="status">就绪</span>
+                        </div>
+                    </div>
+                    
+                    <div class="status-section">
+                        <div class="status-header">💰 资源</div>
+                        <div class="status-item">
+                            <span class="status-label">金币:</span>
+                            <span class="status-value" id="gold">100</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">线索:</span>
+                            <span class="status-value" id="clues">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="status-section">
+                        <div class="status-header">👥 打手团队</div>
+                        <div class="status-item">
+                            <span class="status-label">当前打手:</span>
+                            <span class="status-value" id="helpers">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">损失打手:</span>
+                            <span class="status-value" id="lostHelpers">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="controls-container">
+                    <button onclick="startAdventure()" id="startBtn">开始探险</button>
+                    <button onclick="resetGame()" id="resetBtn" class="secondary">重新开始</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏配置
+        const GAME_CONFIG = {
+            initialGold: 100,
+            helperCost: 10,
+            helperReward: 8,
+            helperCompensation: 5,
+            clueReward: 20,
+            treasureReward: 500
+        };
+        
+        // 基于原版扩展的宝藏地图API
+        class TreasureMap {
+            static locations = {
+                // 精确对应新地图上的圆圈中心坐标
+                library: { name: "古老图书馆", x: 105, y: 110 }, // 对应地图上cx="120" cy="125"，减去玩家半径15px
+                guild: { name: "冒险者工会", x: 205, y: 110 }, // 对应地图上cx="220" cy="125"，减去玩家半径15px
+                forest: { name: "神秘森林", x: 305, y: 110 }, // 对应地图上cx="320" cy="125"，减去玩家半径15px
+                temple: { name: "神圣神庙", x: 465, y: 110 }, // 对应地图上cx="480" cy="125"，减去玩家半径15px
+                treasure: { name: "宝藏地点", x: 765, y: 110 } // 对应地图上cx="780" cy="125"，减去玩家半径15px
+            };
+            
+            // 原版方法保留
+            static getInitialClue() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("在古老的图书馆里找到了第一个线索...");
+                    }, 1200);
+                });
+            }
+        
+            static decodeAncientScript(clue) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        if (!clue) {
+                            reject("没有线索可以解码!");
+                        }
+                        resolve("解码成功!宝藏在一座古老的神庙中...");
+                    }, 1800);
+                });
+            }
+        
+            static searchTemple(location) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.3) {
+                            reject("糟糕!遇到了神庙守卫!");
+                        }
+                        resolve("找到了一个神秘的箱子...");
+                    }, 2200);
+                });
+            }
+        
+            static openTreasureBox() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("恭喜!你找到了传说中的宝藏!");
+                    }, 1500);
+                });
+            }
+            
+            // 新增：雇佣打手
+            static hireHelper() {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.5) { // 调整为50%雇佣成功率，符合用户要求
+                            resolve("成功雇佣了一名打手!");
+                        } else {
+                            reject("雇佣失败，候选人拒绝了你的邀请...");
+                        }
+                    }, 1000);
+                });
+            }
+            
+            // 简化版：穿越森林
+            static crossForest() {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.25) { // 25%概率迷失
+                            reject("在森林中迷失了方向，耽误了时间...");
+                        } else {
+                            resolve("成功穿越森林...");
+                        }
+                    }, 2000);
+                });
+            }
+            
+            // 搜索神庙
+            static searchTemple(location) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.2) {
+                            reject("糟糕!遇到了神庙守卫!");
+                        }
+                        resolve("找到了一个神秘的箱子...");
+                    }, 2200);
+                });
+            }
+        }
+        
+        // 游戏状态管理
+        class GameState {
+            constructor() {
+                this.loadFromStorage();
+            }
+            
+            reset() {
+                this.gold = GAME_CONFIG.initialGold;
+                this.helpers = 0;
+                this.lostHelpers = 0;
+                this.clues = 0;
+                this.currentLocation = "起点";
+                this.phase = "未开始";
+                this.status = "就绪";
+                this.isPlaying = false;
+                this.unlockedScenes = ['library'];
+                this.completedScenes = [];
+                this.saveToStorage();
+            }
+            
+            update(data) {
+                Object.assign(this, data);
+                this.updateUI();
+                this.saveToStorage();
+            }
+            
+            updateUI() {
+                document.getElementById('gold').textContent = this.gold;
+                document.getElementById('helpers').textContent = this.helpers;
+                document.getElementById('lostHelpers').textContent = this.lostHelpers;
+                document.getElementById('clues').textContent = this.clues;
+                document.getElementById('currentLocation').textContent = this.currentLocation;
+                document.getElementById('gamePhase').textContent = this.phase;
+                document.getElementById('status').textContent = this.status;
+                
+                const gameStateEl = document.getElementById('gameState');
+                if (this.isPlaying) {
+                    gameStateEl.className = "game-state playing";
+                    gameStateEl.textContent = "游戏进行中";
+                } else {
+                    if (this.phase === "成功") {
+                        gameStateEl.className = "game-state success";
+                        gameStateEl.textContent = "寻宝成功";
+                    } else if (this.phase === "失败") {
+                        gameStateEl.className = "game-state failed";
+                        gameStateEl.textContent = "寻宝失败";
+                    } else {
+                        gameStateEl.className = "game-state waiting";
+                        gameStateEl.textContent = "等待开始";
+                    }
+                }
+            }
+            
+            // 保存到本地存储
+            saveToStorage() {
+                const gameData = {
+                    gold: this.gold,
+                    helpers: this.helpers,
+                    lostHelpers: this.lostHelpers,
+                    clues: this.clues,
+                    currentLocation: this.currentLocation,
+                    phase: this.phase,
+                    status: this.status,
+                    isPlaying: this.isPlaying,
+                    unlockedScenes: this.unlockedScenes,
+                    completedScenes: this.completedScenes
+                };
+                localStorage.setItem('treasureHuntGame', JSON.stringify(gameData));
+            }
+            
+            // 从本地存储加载
+            loadFromStorage() {
+                const savedData = localStorage.getItem('treasureHuntGame');
+                if (savedData) {
+                    const gameData = JSON.parse(savedData);
+                    Object.assign(this, gameData);
+                } else {
+                    this.reset();
+                }
+            }
+        }
+        
+        // 简化的游戏UI管理
+        class GameUI {
+            constructor() {
+                this.player = document.getElementById('player');
+                this.guard = document.getElementById('guard');
+                this.treasure = document.getElementById('treasure');
+                this.eventPopup = document.getElementById('eventPopup');
+                this.logContainer = document.getElementById('logContainer');
+            }
+            
+            log(message, type = 'info') {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                logEntry.innerHTML = `<span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span> ${message}`;
+                this.logContainer.appendChild(logEntry);
+                this.logContainer.scrollTop = this.logContainer.scrollHeight;
+            }
+            
+            showEvent(message, x, y) {
+                // 简单的事件提示
+                this.log(message, 'event');
+            }
+            
+            createHelper(x, y, index) {
+                const helper = document.createElement('div');
+                helper.className = 'helper';
+                helper.style.left = `${x + (index - 1) * 15}px`;
+                helper.style.top = `${y - 10}px`;
+                document.getElementById('treasureMap').appendChild(helper);
+                return helper;
+            }
+            
+            // 简化的状态更新
+            updateGuard(state) {
+                this.guard.style.opacity = state === 'show' ? '1' : '0';
+            }
+            
+            updateTreasure(state) {
+                this.treasure.style.opacity = state === 'show' ? '1' : '0';
+            }
+            
+            reset() {
+                // 重置玩家位置到图书馆中心
+                this.player.style.left = `${TreasureMap.locations.library.x}px`;
+                this.player.style.top = `${TreasureMap.locations.library.y}px`;
+                
+                // 隐藏守卫和宝藏
+                this.updateGuard('hide');
+                this.updateTreasure('hide');
+                
+                // 清空日志
+                this.logContainer.innerHTML = '';
+                
+                // 移除所有临时元素
+                document.querySelectorAll('.helper').forEach(el => el.remove());
+            }
+        }
+        
+        // 玩家角色管理 - 简化版
+        class Player {
+            constructor(ui) {
+                this.ui = ui;
+                this.helpers = [];
+            }
+            
+            async move(x, y, location) {
+                // 简单直接的位置更新，确保准确
+                const playerEl = document.getElementById('player');
+                playerEl.style.left = `${x}px`;
+                playerEl.style.top = `${y}px`;
+                
+                this.ui.showEvent(`到达${location}`, x + 20, y - 30);
+                
+                // 更新助手位置
+                this.helpers.forEach((helper, index) => {
+                    helper.style.left = `${x + (index - 1) * 15}px`;
+                    helper.style.top = `${y - 10}px`;
+                });
+                
+                await delay(800);
+            }
+            
+            hireHelper(count) {
+                const playerEl = document.getElementById('player');
+                const x = parseInt(playerEl.style.left);
+                const y = parseInt(playerEl.style.top);
+                
+                for (let i = 0; i < count; i++) {
+                    const helper = this.ui.createHelper(x, y, this.helpers.length + 1);
+                    this.helpers.push(helper);
+                }
+            }
+            
+            loseHelper(count) {
+                const lostHelpers = Math.min(count, this.helpers.length);
+                for (let i = 0; i < lostHelpers; i++) {
+                    const helper = this.helpers.pop();
+                    helper.remove();
+                }
+                return lostHelpers;
+            }
+            
+            getHelperCount() {
+                return this.helpers.length;
+            }
+            
+            reset() {
+                this.helpers.forEach(helper => helper.remove());
+                this.helpers = [];
+            }
+        }
+        
+        // 辅助函数
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // 初始化游戏
+        const gameState = new GameState();
+        const gameUI = new GameUI();
+        const player = new Player(gameUI);
+        
+        // 使用async/await重写的寻宝过程 - 最简化版
+        async function findTreasureWithAsyncAwait() {
+            gameState.update({ 
+                isPlaying: true, 
+                phase: "开始探险", 
+                status: "正在寻找线索",
+                currentLocation: "古老图书馆"
+            });
+            
+            try {
+                // 阶段1：图书馆获取线索（100%成功）
+                gameUI.log("开始寻宝之旅，首先前往古老图书馆...");
+                await player.move(
+                    TreasureMap.locations.library.x, 
+                    TreasureMap.locations.library.y, 
+                    "古老图书馆"
+                );
+                gameState.update({ currentLocation: "古老图书馆" });
+                
+                gameUI.log("在图书馆中搜索线索...");
+                const initialClue = await TreasureMap.getInitialClue();
+                gameUI.log(initialClue, "success");
+                gameState.update({ 
+                    clues: gameState.clues + 1, 
+                    status: "解码线索中"
+                });
+                
+                // 阶段2：解码线索
+                gameUI.log("尝试解码古代文字...");
+                const decodedClue = await TreasureMap.decodeAncientScript(initialClue);
+                gameUI.log(decodedClue, "success");
+                gameState.update({ 
+                    clues: gameState.clues + 1, 
+                    status: "雇佣打手"
+                });
+                
+                // 阶段3：前往工会雇佣打手
+                gameUI.log("前往冒险者工会雇佣打手...");
+                await player.move(
+                    TreasureMap.locations.guild.x, 
+                    TreasureMap.locations.guild.y, 
+                    "冒险者工会"
+                );
+                gameState.update({ currentLocation: "冒险者工会" });
+                
+                gameUI.log("在工会中寻找合适的帮手...");
+                
+                const hireAttempts = 5; // 固定5次雇佣尝试
+                let actualAttempts = 0;
+                
+                for (let i = 0; i < hireAttempts; i++) {
+                    if (gameState.gold >= GAME_CONFIG.helperCost) {
+                        actualAttempts++;
+                        try {
+                            gameState.update({ gold: gameState.gold - GAME_CONFIG.helperCost });
+                            const hireResult = await TreasureMap.hireHelper();
+                            gameUI.log(hireResult, "success");
+                            player.hireHelper(1);
+                            gameState.update({ helpers: gameState.helpers + 1 });
+                            await delay(500);
+                        } catch (error) {
+                            gameUI.log(error, "warning");
+                            gameState.update({ gold: gameState.gold + GAME_CONFIG.helperCost });
+                        }
+                    } else {
+                        gameUI.log("金币不足，无法继续雇佣打手...", "warning");
+                        break;
+                    }
+                }
+                
+                gameUI.log(`雇佣结束，共有${gameState.helpers}名打手`, "info");
+                gameState.update({ status: "穿越森林中" });
+                
+                // 阶段4：穿越森林
+                gameUI.log("前往森林，准备前往神庙...");
+                await player.move(
+                    TreasureMap.locations.forest.x, 
+                    TreasureMap.locations.forest.y, 
+                    "神秘森林"
+                );
+                gameState.update({ currentLocation: "神秘森林" });
+                
+                gameUI.log("穿越森林中...");
+                const forestResult = await TreasureMap.crossForest();
+                gameUI.log(forestResult, "success");
+                gameState.update({ status: "前往神庙" });
+                
+                // 阶段5：前往神庙
+                gameUI.log("前往神庙...");
+                await player.move(
+                    TreasureMap.locations.temple.x, 
+                    TreasureMap.locations.temple.y, 
+                    "神圣神庙"
+                );
+                gameState.update({ currentLocation: "神圣神庙" });
+                
+                // 显示守卫
+                gameUI.updateGuard('show');
+                gameUI.log("神庙守卫正在巡逻...", "warning");
+                gameState.update({ status: "与守卫周旋" });
+                
+                // 阶段6：遭遇守卫
+                gameUI.log("守卫发现了你，开始追击...");
+                
+                if (gameState.helpers > 0) {
+                    // 有打手：随机损失0-2位打手
+                    const lostHelpers = Math.floor(Math.random() * 3); // 0-2位
+                    
+                    if (lostHelpers > 0) {
+                        const actualLost = Math.min(lostHelpers, gameState.helpers);
+                        player.loseHelper(actualLost);
+                        gameState.update({ 
+                            helpers: gameState.helpers - actualLost,
+                            lostHelpers: gameState.lostHelpers + actualLost
+                        });
+                        gameUI.log(`与守卫战斗，损失了${actualLost}名打手...`, "warning");
+                    } else {
+                        gameUI.log("成功击退守卫...", "success");
+                    }
+                } else {
+                    // 没有打手：有概率被抓住
+                    const caughtChance = Math.random();
+                    if (caughtChance < 0.7) { // 70%概率被抓住
+                        gameUI.log("没有打手保护，被守卫抓住了!");
+                        throw new Error("没有打手保护，被守卫抓住，寻宝失败!");
+                    } else {
+                        gameUI.log("幸运地逃脱了守卫的追击...", "success");
+                    }
+                }
+                
+                // 阶段7：搜索神庙
+                gameState.update({ status: "搜索宝藏" });
+                gameUI.log("在神庙中搜索宝藏...");
+                
+                // 阶段8：前往宝藏点
+                gameUI.log("找到了宝藏的位置，前往宝藏点...");
+                await player.move(
+                    TreasureMap.locations.treasure.x, 
+                    TreasureMap.locations.treasure.y, 
+                    "宝藏地点"
+                );
+                gameState.update({ currentLocation: "宝藏地点" });
+                
+                // 阶段9：打开宝箱
+                gameState.update({ status: "打开宝箱" });
+                gameUI.log("尝试打开神秘宝箱...");
+                const treasureResult = await TreasureMap.openTreasureBox();
+                gameUI.log(treasureResult, "success");
+                
+                // 阶段10：获得宝藏
+                gameUI.log("找到了传说中的宝藏！", "success");
+                
+                // 显示宝藏
+                gameUI.updateTreasure('show');
+                
+                // 支付打手报酬
+                if (gameState.helpers > 0) {
+                    const payment = gameState.helpers * GAME_CONFIG.helperReward;
+                    gameState.update({ gold: gameState.gold - payment });
+                    gameUI.log(`支付${payment}金币给${gameState.helpers}名打手作为报酬`, "info");
+                }
+                
+                // 获得宝藏奖励
+                gameState.update({ gold: gameState.gold + GAME_CONFIG.treasureReward });
+                gameUI.log(`获得了${GAME_CONFIG.treasureReward}金币的宝藏奖励！`, "success");
+                
+                gameUI.log("恭喜！你成功完成了寻宝大冒险！", "event");
+                gameState.update({ 
+                    isPlaying: false, 
+                    phase: "成功", 
+                    status: "完成"
+                });
+                
+            } catch (error) {
+                gameUI.log(`探险失败: ${error}`, "error");
+                gameState.update({ 
+                    isPlaying: false, 
+                    phase: "失败", 
+                    status: "失败"
+                });
+            }
+        }
+        
+        // 游戏控制函数
+        function startAdventure() {
+            if (!gameState.isPlaying) {
+                if (gameState.phase === "未开始" || gameState.phase === "成功" || gameState.phase === "失败") {
+                    // 如果游戏未开始或已结束，重置游戏
+                    resetGame();
+                }
+                findTreasureWithAsyncAwait();
+            }
+        }
+        
+        function resetGame() {
+            // 重置游戏状态
+            gameState.reset();
+            player.reset();
+            gameUI.reset();
+            
+            // 更新UI
+            gameState.updateUI();
+            gameUI.log("游戏已重置，点击开始探险按钮开始游戏...");
+        }
+        
+        // 初始化游戏 - 不重置，直接使用保存的数据
+        gameState.updateUI();
+        gameUI.log("欢迎回来！继续你的寻宝冒险吧...");
+        
+        // 音乐控制
+        let musicPlaying = true;
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        
+        function toggleMusic() {
+            if (musicPlaying) {
+                backgroundMusic.pause();
+                musicPlaying = false;
+                document.getElementById('musicIcon').textContent = '🔇';
+            } else {
+                backgroundMusic.play();
+                musicPlaying = true;
+                document.getElementById('musicIcon').textContent = '🔊';
+            }
+        }
+        
+        // 进入全景页
+        function goToPanorama() {
+            // 保存当前游戏状态
+            gameState.saveToStorage();
+            window.location.href = 'panorama.html';
+        }
+    </script>
+</body>
+</html>
